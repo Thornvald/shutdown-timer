@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  background-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: transparent;
+  color: white;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Tauri specific drag region */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
