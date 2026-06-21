@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Sphere, useTexture, Stars } from "@react-three/drei";
 import { motion } from "framer-motion";
