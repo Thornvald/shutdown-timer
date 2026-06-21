@@ -32,11 +32,24 @@ fn exit_app(app_handle: tauri::AppHandle) {
     app_handle.exit(0);
 }
 
+#[tauri::command]
+fn toggle_maximize(app_handle: tauri::AppHandle) {
+    use tauri::Manager;
+    if let Some(window) = app_handle.get_webview_window("main") {
+        let is_maximized = window.is_maximized().unwrap_or(false);
+        if is_maximized {
+            let _ = window.unmaximize();
+        } else {
+            let _ = window.maximize();
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![set_shutdown_timer, cancel_shutdown_timer, exit_app])
+        .invoke_handler(tauri::generate_handler![set_shutdown_timer, cancel_shutdown_timer, exit_app, toggle_maximize])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

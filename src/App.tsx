@@ -150,12 +150,7 @@ function App() {
   };
 
   const toggleMaximize = async () => {
-    const win = getCurrentWindow();
-    if (await win.isMaximized()) {
-      await win.unmaximize();
-    } else {
-      await win.maximize();
-    }
+    await invoke("toggle_maximize");
   };
 
   return (
