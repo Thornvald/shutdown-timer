@@ -1,11 +1,51 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Sphere, useTexture } from "@react-three/drei";
+import { Sphere, useTexture, Stars } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { Power, X, Minus, Plus, Maximize } from "lucide-react";
 import "./App.css";
+
+function Lasers({ isRunning }: { isRunning: boolean }) {
+  const groupRef = useRef<any>(null);
+  
+  const lasers = useMemo(() => Array.from({ length: 30 }).map(() => ({
+    position: [
+      (Math.random() - 0.5) * 30,
+      (Math.random() - 0.5) * 30,
+      (Math.random() - 0.5) * 50 - 20
+    ],
+    speed: Math.random() * 40 + 40,
+    color: Math.random() > 0.5 ? "#ef4444" : "#22c55e"
+  })), []);
+
+  useFrame((_, delta) => {
+    if (isRunning && groupRef.current) {
+      groupRef.current.children.forEach((child: any, i: number) => {
+        child.position.z += lasers[i].speed * delta;
+        if (child.position.z > 20) {
+          child.position.z = -50;
+          child.position.x = (Math.random() - 0.5) * 30;
+          child.position.y = (Math.random() - 0.5) * 30;
+        }
+      });
+    }
+  });
+
+  if (!isRunning) return null;
+
+  return (
+    <group ref={groupRef}>
+      {lasers.map((laser, i) => (
+        <mesh key={i} position={laser.position as [number, number, number]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.08, 0.08, 6, 8]} />
+          <meshBasicMaterial color={laser.color} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
 
 function Globe({ isRunning }: { isRunning: boolean }) {
   const globeRef = useRef<any>(null);
@@ -19,25 +59,29 @@ function Globe({ isRunning }: { isRunning: boolean }) {
   });
 
   return (
-    <group ref={globeRef} scale={1.8}>
-      <Sphere args={[1.5, 64, 64]}>
-        <meshStandardMaterial 
-          map={colorMap}
-          color={isRunning ? "#ff8888" : "#ffffff"} 
-          roughness={0.6}
-          metalness={0.1}
-        />
-      </Sphere>
-      {/* Light glow shell */}
-      <Sphere args={[1.52, 32, 32]}>
-        <meshBasicMaterial 
-          color={isRunning ? "#ef4444" : "#3b82f6"} 
-          transparent
-          opacity={isRunning ? 0.15 : 0.05}
-          blending={2} // AdditiveBlending equivalent is better done via Three directly, but standard transparency works well
-        />
-      </Sphere>
-    </group>
+    <>
+      <Stars radius={50} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
+      <Lasers isRunning={isRunning} />
+      <group ref={globeRef} scale={1.8}>
+        <Sphere args={[1.5, 64, 64]}>
+          <meshStandardMaterial 
+            map={colorMap}
+            color={isRunning ? "#ff8888" : "#ffffff"} 
+            roughness={0.6}
+            metalness={0.1}
+          />
+        </Sphere>
+        {/* Light glow shell */}
+        <Sphere args={[1.52, 32, 32]}>
+          <meshBasicMaterial 
+            color={isRunning ? "#ef4444" : "#3b82f6"} 
+            transparent
+            opacity={isRunning ? 0.15 : 0.05}
+            blending={2} 
+          />
+        </Sphere>
+      </group>
+    </>
   );
 }
 
@@ -117,10 +161,10 @@ function App() {
   return (
     <div className="relative w-screen h-screen rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800/80 shadow-2xl flex flex-col transition-all">
       {/* Drag Region */}
-      <div data-tauri-drag-region className="absolute top-0 left-0 w-full h-10 z-40 cursor-move" />
+      <div data-tauri-drag-region className="absolute top-0 left-0 w-[calc(100%-100px)] h-10 z-40 cursor-move" />
 
       {/* Window Controls */}
-      <div className="absolute top-0 right-0 h-10 z-50 flex items-center justify-end px-4 space-x-2 pointer-events-auto">
+      <div className="absolute top-0 right-0 w-[100px] h-10 z-50 flex items-center justify-end px-4 space-x-2 pointer-events-auto">
         <button 
           onClick={toggleMaximize} 
           className="text-zinc-500 hover:text-zinc-200 transition-colors p-1 rounded-full hover:bg-zinc-800/50"
